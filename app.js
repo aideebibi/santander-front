@@ -1,29 +1,49 @@
-const forms = document.querySelectorAll(".signup-form");
+const forms = document.querySelectorAll(".signup-form")
 
-
-//ejecuta el servicio de red
-const func_getTemplate = () => {
-    return fetch("./template.html").then ((response) => response.text())
+const getTemplate = () => {
+  return fetch("./template.html")
+    .then((response) => response.text())
 }
 
-// Esta función se conoce como arrow function
-const func_sendEmail = (miVariable) => {
-    miVariable.preventDefault();
-    const email = miVariable.target.querySelector("input").value;
+const sendEmailToApi = (address, template) => {
+  fetch(`https://bedu-email-sender-api.herokuapp.com/send?id`, {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      address: address,
+      template: template,
+    }),
+  })
+    .then((results) => {
+      console.log(results.status);
+      if(results.status == 200){
+        alert("E-mail send!!!")
+      } else {
+        alert("Send failed")
+      }
+      document.getElementById("email").value = ""
+    })
+    .catch((error) => {
+      console.error(error);
+      document.getElementById("email").value = ""
+      alert("Send failed")
+    });
+};
 
-    func_getTemplate()
-        .then((response) => {
-            console.log("Response: ", response);
-        })
-        .catch((error) => {
-            console.log("Error:", error);
-        })
-    
-    console.log("Mi variable: ", miVariable);
-    console.log("Email: ", email);
+function sendEmail(miVariable) {
+  miVariable.preventDefault()
+  const email = miVariable.target.querySelector("input").value
+  getTemplate()
+    .then((template) => {
+      sendEmailToApi(email, template)
+    })
+    .catch((error) => {
+      console.log(error, "error al obtener el template");
+    })
 }
-
 
 for(let i = 0; i < forms.length; i++){
-    forms[i].addEventListener("submit", func_sendEmail);
+  forms[i].addEventListener("submit", sendEmail)
 }
